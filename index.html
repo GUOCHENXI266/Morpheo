@@ -2963,6 +2963,7 @@
         class Background {
             constructor(canvasWidth, canvasHeight) {
                 this.stars = [];
+                this.time = 0;
                 this.layers = [
                     { parallax: 0.1, count: 30 },
                     { parallax: 0.2, count: 30 },
@@ -2985,6 +2986,7 @@
             }
 
             update() {
+                this.time++;
                 this.stars.forEach(star => {
                     star.twinkle += 0.05;
                     star.y += star.speed;
@@ -3040,6 +3042,57 @@
                         ctx.fill();
                     }
                 });
+
+                // 酒水场景特效：底部红酒液体
+                if (scene && scene.name === 'beverage') {
+                    const wineHeight = 150;
+                    const wineY = ctx.canvas.height - wineHeight;
+
+                    // 红酒液体渐变
+                    const wineGradient = ctx.createLinearGradient(0, wineY, 0, ctx.canvas.height);
+                    wineGradient.addColorStop(0, 'rgba(139, 0, 0, 0.3)');
+                    wineGradient.addColorStop(0.5, 'rgba(139, 0, 0, 0.5)');
+                    wineGradient.addColorStop(1, 'rgba(92, 0, 0, 0.7)');
+                    ctx.fillStyle = wineGradient;
+                    ctx.fillRect(0, wineY, ctx.canvas.width, wineHeight);
+
+                    // 液体表面波纹
+                    ctx.strokeStyle = 'rgba(160, 0, 0, 0.6)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    const waveCount = 10;
+                    for (let i = 0; i <= waveCount; i++) {
+                        const x = (i / waveCount) * ctx.canvas.width;
+                        const wave = Math.sin(i * 0.8 + this.time * 0.05) * 5;
+                        if (i === 0) {
+                            ctx.moveTo(x, wineY + wave);
+                        } else {
+                            ctx.lineTo(x, wineY + wave);
+                        }
+                    }
+                    ctx.stroke();
+
+                    // 液体高光
+                    const highlightGradient = ctx.createLinearGradient(0, wineY, 0, wineY + 30);
+                    highlightGradient.addColorStop(0, 'rgba(220, 20, 60, 0.4)');
+                    highlightGradient.addColorStop(1, 'rgba(220, 20, 60, 0)');
+                    ctx.fillStyle = highlightGradient;
+                    ctx.fillRect(0, wineY, ctx.canvas.width, 30);
+
+                    // 漂浮的气泡
+                    const bubbleCount = 15;
+                    for (let i = 0; i < bubbleCount; i++) {
+                        const bubbleX = (i * ctx.canvas.width / bubbleCount + this.time * 0.5) % ctx.canvas.width;
+                        const bubbleY = wineY + 20 + Math.sin(this.time * 0.03 + i) * 50;
+                        const bubbleSize = 2 + Math.sin(this.time * 0.1 + i) * 1;
+                        const bubbleAlpha = 0.2 + Math.sin(this.time * 0.05 + i) * 0.1;
+
+                        ctx.fillStyle = `rgba(255, 100, 150, ${bubbleAlpha})`;
+                        ctx.beginPath();
+                        ctx.arc(bubbleX, bubbleY, bubbleSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
             }
         }
 
